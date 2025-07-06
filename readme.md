@@ -1,44 +1,107 @@
+# Golang Agnostic Template
 
----  
+![Go](https://img.shields.io/badge/Go-1.24-blue)
+![License](https://img.shields.io/badge/License-MIT-green)
+![Database](https://img.shields.io/badge/Database-SurrealDB-purple)
 
-# 🚀 **GoFlex** *(The Agnostic Go Template)*  
-**Production-ready Go template** for REST APIs, event-driven microservices, or anything in between. Built with **clean architecture (hexagonal), AWS SSM secrets, and pluggable transports** (Gin, NATS, gRPC, or your choice). Batteries included, opinions optional.  
+**Golang Agnostic Template** is a Go backend template designed for building modern, scalable, and maintainable applications using **hexagonal architecture** (Ports and Adapters). This project provides a solid foundation to develop web applications focused on clean code, modularity, and best development practices.
 
-### 🔥 **Why GoFlex?**  
-✅ **Clean Architecture** – Decoupled domain, testable, and maintainable.  
-✅ **Cloud-Native** – AWS SSM secrets, structured logging, and observability (OpenTelemetry/Prometheus).  
-✅ **Protocol-Agnostic** – Start with REST (Gin), switch to NATS/Kafka, or go gRPC—**no rewrites**.  
-✅ **Zero Lock-In** – Replace AWS SSM with Vault, Gin with Fiber, or NATS with RabbitMQ.  
-✅ **DevOps-Ready** – Pre-configured CI/CD, Docker, and Makefile for instant productivity.  
+## Key Features
 
-### ⚡ **Quick Start**  
-```bash  
-git clone https://github.com/your-repo/goflex  
-cd goflex && make dev  
-```  
-*Set secrets in AWS SSM, and you’re live!*  
+- **Hexagonal Architecture**: Separates business logic (domain) from infrastructure, enabling scalability, maintainability, and easy replacement of external components (e.g., databases or web frameworks).
+- **Design Patterns**:
+  - **Repository Pattern**: Abstracts data access through interfaces defined in `src/application/domain/repository`.
+  - **Dependency Injection**: Injects dependencies into components, such as handlers and services, to improve testability.
+  - **Factory Pattern**: Centralizes the creation of domain entities in `src/application/domain/factory.go`.
+  - **DTO (Data Transfer Objects)**: Uses DTOs (`src/application/domain/dto/register_user.go`) to securely handle input/output data with validation.
+- **Modularity**: Clear structure with separation of domain (`src/application/domain`), adapters (`src/application/actors`), and infrastructure (`src/pkg`).
+- **Containerization**: Includes Docker support via `docker-compose.yaml`, simplifying deployment in local and production environments.
 
-### 📦 **What’s Inside?**  
-- Hexagonal design (ports/adapters)  
-- CQRS, Dependency Injection, and more  
-- Dynamic configs (dev/staging/prod)  
-- Modular **event-driven** or **REST-first** setup  
-- Example CRUD + JWT auth  
+## Technological Components
+- [x] **Gin**: Web framework for building RESTful APIs.
+- [x] **SurrealDB Singleton**: Modern multimodal database.
+- [x] **Zap**: Framework for structured logging.
+- [ ] **NATS**: Cloud-native messaging system framework.
+- [ ] **SurrealDB Multitenant**: Namespace and write management.
+- [ ] **RxGo**: Reactive programming library.
 
-### 🌟 **Perfect For**  
-- Launching scalable microservices **fast**  
-- Learning clean architecture in Go  
-- Projects demanding **flexibility without chaos**  
+## Project Structure
 
----  
-**MIT Licensed** • **PRs Welcome!** • Docs: [goflex.dev](https://goflex.dev) *(example link)*  
+The project follows a modular structure aligned with hexagonal architecture principles, as shown below:
 
----  
+```
+- 📁 **golang-agnostic-template/**
+  - 📄 `docker-compose.yaml` - Docker Compose configuration
+  - 📁 **src/**
+    - 📁 **application/**
+      - 📁 **actors/**
+        - 📁 **db/**
+          - 📄 `user_repository.go` - User repository implementation
+        - 📁 **web/**
+          - 📄 `handler.go` - API handlers
+          - 📄 `router.go` - Gin router configuration
+      - 📁 **domain/**
+        - 📁 **business/**
+          - 📄 `user.go` - User business logic
+        - 📁 **dto/**
+          - 📄 `register_user.go` - User registration DTO
+        - 📁 **model/**
+          - 📄 `user.go` - User entity
+        - 📁 **repository/**
+          - 📄 `user_repository.go` - User repository interface
+        - 📁 **service/**
+          - 📄 `user.go` - User service logic
+          - 📄 `organization.go` - Organization service logic
+        - 📁 **utils/**
+          - 📄 `constants.go` - Domain constants
+          - 📄 `errors.go` - Custom error handling
+          - 📄 `utils.go` - Utility functions
+    - 📁 **pkg/**
+      - 📁 **database/**
+        - 📄 `surrealdb.go` - SurrealDB adapter
+      - 📁 **webserver/**
+        - 📄 `server.go` - Gin web server configuration
+```
 
-### 🔍 **SEO & Article-Friendly**  
-Pair this with a blog post like:  
-- *"Why GoFlex Beats Boilerplate for Microservices"*  
-- *"Hexagonal Go: The Right Way™"*  
-- *"From Zero to Cloud-Native in 5 Minutes with GoFlex"*  
+## Installation
 
-Want it more opinionated? Add a **"Philosophy"** section or benchmarks. Let me refine it!
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/dany0814/golang-agnostic-template.git &&
+   cd golang-agnostic-template
+   ```
+
+2. **Set up the environment**:
+   
+   Ensure Go 1.24+ is installed and Install dependencies:
+      ```bash
+      go mod tidy
+      ```
+   
+   Create the `.env` file in the root directory (use `.env.example` as a guide):
+      ```bash
+      cp -p .env.example .env
+      ```
+
+3. **Run SurrealDB with Docker**:
+   
+   Use `docker-compose` to start the services:
+     ```bash
+     docker-compose up -d --build
+     ```
+
+4. **Run locally**:
+   
+   Compile application and run the server from root directory:
+     ```bash
+     go run main.go
+     ```
+
+## Usage
+
+- **Scalable Web Applications**: The application exposes endpoints defined in `src/application/actors/web/router.go`. For example, you can register a user by sending a POST request to `/users/register` with a JSON body based on `register_user.go`.
+- **Database**: SurrealDB stores user data, with entities defined in `src/application/domain/model/user.go`.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
