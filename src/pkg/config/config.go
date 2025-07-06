@@ -2,8 +2,8 @@ package config
 
 import (
 	"context"
+	"time"
 
-	"github.com/go-playground/validator"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 )
@@ -18,15 +18,25 @@ type Parameters struct {
 	FileSize     int    `envconfig:"file_size"`
 	FilePath     string `envconfig:"file_path"`
 	FileCompress bool   `envconfig:"file_compress"`
-	MaxDuration  int    `envconfig:"max_age"`
+	MaxDuration  int    `envconfig:"max_duration"`
 	MaxBackups   int    `envconfig:"max_backups"`
+	// Web Server
+	WebHost         string        `envconfig:"web_host" default:"0.0.0.0"`
+	WebPort         int           `envconfig:"web_port"`
+	ShutdownTimeout time.Duration `envconfig:"web_shutdowntimeout" default:"20s"`
+	// Database
+	DBHost      string `envconfig:"db_host"`
+	DBPort      int    `envconfig:"db_port"`
+	DBNamespace string `envconfig:"db_namespace"`
+	DBDatabase  string `envconfig:"db_database"`
+	DBUser      string `envconfig:"db_user"`
+	DBPassword  string `envconfig:"db_password"`
 }
 
 var Params Parameters
-var Valid *validator.Validate
 
 func LoadConfig(ctx context.Context) error {
-	err := godotenv.Load()
+	err := godotenv.Load(".env")
 	if err != nil {
 		return err
 	}
@@ -35,8 +45,5 @@ func LoadConfig(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-
-	Valid = validator.New()
-
 	return nil
 }

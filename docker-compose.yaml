@@ -1,0 +1,27 @@
+networks:
+  localnet:
+    name: localnet
+    external: true
+
+services:
+  surrealdb:
+    image: surrealdb/surrealdb:latest
+    container_name: surrealdb
+    restart: unless-stopped
+    pull_policy: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - ${PWD}/surrealdb:/var/lib/surrealdb
+    env_file:
+      - ${PWD}/.env
+    networks:
+      - localnet
+    command: start --user ${SURREAL_USER} --pass ${SURREAL_PASS} rocksdb:/var/lib/surrealdb/rocks.db
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          memory: 1G

@@ -1,42 +1,44 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"golang-agnostic-template/bootstrap"
-	"golang-agnostic-template/src/pkg/cli"
-	"golang-agnostic-template/src/pkg/logger"
 	"os"
 	"os/signal"
-	"syscall"
+
+	"golang-agnostic-template/src/application/domain/utils"
+	"golang-agnostic-template/src/pkg/config"
+	"golang-agnostic-template/src/pkg/database"
+	"golang-agnostic-template/src/pkg/logger"
+	"golang-agnostic-template/src/pkg/webserver"
 )
 
 func main() {
-	// Inicializar logger
-	log, err := logger.InitLogger()
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
+
+	err := config.LoadConfig(ctx)
+
 	if err != nil {
-		log.Error("Error al iniciar el Logger")
+		fmt.Printf("cannot load %s: %v", utils.ENVIRONMENT, err)
+		return
+	}
+
+	log, err := logger.NewLogger()
+	if err != nil {
+		fmt.Printf("cannot load %s: %v", utils.LOGGER, err)
+		return
 	}
 	defer log.Sync()
-	// Crear un canal para manejar las señales de interrupción
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 
-	serverChan := cli.CliConfig.ServerChan // Usamos el canal de comandos que ya tienes en cli
+	db := database.NewSurrealDBConnection()
+	defer db.Close()
 
-	cli.Init()
-	cli.ExecuteCLI()
-
-	for {
-		select {
-		case serverType := <-serverChan:
-			if err := bootstrap.RunApplication(serverType, log); err != nil {
-				log.Fatal("Error al levantar la aplicación: ")
-			}
-		case sig := <-signalChan:
-			fmt.Println(sig)
-			log.Info("Señal recibida: ")
-			log.Info("Terminando la aplicación...")
-			return // Salir cuando se reciba la señal
-		}
+	ctx, server := webserver.NewServer(ctx)
+	server.Routes(ctx, log)
+	err = server.Run(ctx)
+	if err != nil {
+		log.Fatal("cannot initialize web server", logger.LoggerField{Key: utils.WEB_SERVER, Value: err})
+		return
 	}
 }
