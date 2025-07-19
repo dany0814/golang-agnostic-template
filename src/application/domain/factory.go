@@ -13,7 +13,7 @@ import (
 
 type FactoryRepository interface {
 	Create(ctx context.Context) FactoryRepository
-	GetUserRepository() repository.UserRepository
+	GetUserRepository() repository.IUserRepository
 }
 
 type FactoryService interface {
@@ -24,7 +24,7 @@ type FactoryService interface {
 
 type RepositoryFactory struct {
 	db             database.IDatabaseConnection
-	userRepository repository.UserRepository
+	userRepository repository.IUserRepository
 	logger         logger.ILogger
 }
 
@@ -58,18 +58,18 @@ func (p *RepositoryFactory) Create(ctx context.Context) FactoryRepository {
 			logger.LoggerField{Key: "error", Value: err})
 	}
 
-	p.userRepository = surreal.NewUserRepositorySurreal(p.db)
+	p.userRepository = surreal.NewUserRepository(p.db)
 	return p
 }
 
-func (p *RepositoryFactory) GetUserRepository() repository.UserRepository {
+func (p *RepositoryFactory) GetUserRepository() repository.IUserRepository {
 	return p.userRepository
 }
 
 func (s *ServiceFactory) Create(ctx context.Context) FactoryService {
 	repoFactory := NewRepositoryFactory(database.NewSurrealDBConnection(), s.logger)
 	repoFactory = repoFactory.Create(ctx)
-	s.UserService = domain.NewUserService(repoFactory.GetUserRepository())
+	s.UserService = domain.NewUserService(repoFactory.GetUserRepository(), s.logger)
 	s.OrganizationService = domain.NewOrganizationService()
 	return s
 }

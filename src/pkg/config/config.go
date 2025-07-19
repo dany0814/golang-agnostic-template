@@ -31,12 +31,15 @@ type Parameters struct {
 	DBDatabase  string `envconfig:"db_database"`
 	DBUser      string `envconfig:"db_user"`
 	DBPassword  string `envconfig:"db_password"`
+	// Token
+	TokenSecret string `envconfig:"secret_key"`
+	ExpiredHour int64  `envconfig:"expired_hour"`
 }
 
 var Params Parameters
 
 func LoadConfig(ctx context.Context) error {
-	err := godotenv.Load(".env")
+	err := godotenv.Load(".env.app")
 	if err != nil {
 		return err
 	}

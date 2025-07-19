@@ -1,4 +1,6 @@
 /.env
+/.env.app
 /surrealdb
 /logs/app.log
 .DS_Store
+/surrealdb

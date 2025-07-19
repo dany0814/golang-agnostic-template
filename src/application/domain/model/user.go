@@ -9,18 +9,24 @@ import (
 )
 
 type User struct {
-	UserID       models.UUID `json:"user_id"`
-	FirstName    string      `json:"first_name"`
-	LastName     string      `json:"last_name"`
-	Email        string      `json:"email"`
-	Password     string      `json:"password"`
-	Username     string      `json:"username"`
-	Phone        string      `json:"phone"`
-	State        string      `json:"state"`
-	CreatedAt    string      `json:"created_at"`
-	UpdatedAt    string      `json:"updated_at"`
-	DeletedAt    string      `json:"deleted_at"`
-	Organization string      `json:"organization"`
+	ID        *models.RecordID `json:"id"`
+	FirstName string           `json:"first_name"`
+	LastName  string           `json:"last_name"`
+	Email     string           `json:"email"`
+	Password  string           `json:"password"`
+	Username  string           `json:"username"`
+	Phone     string           `json:"phone"`
+	State     string           `json:"state"`
+	CreatedAt string           `json:"created_at"`
+	UpdatedAt string           `json:"updated_at"`
+	DeletedAt string           `json:"deleted_at"`
+	Settings  UserSettings     `json:"settings"`
+}
+
+type UserSettings struct {
+	EmailNotifications bool   `json:"email"`
+	SmsNotifications   bool   `json:"sms"`
+	Language           string `json:"language"`
 }
 
 func (u *User) ValidateEmail() error {
@@ -34,8 +40,11 @@ func (u *User) ValidateEmail() error {
 }
 
 func (u *User) BuildUser() {
+	u.ID = &models.RecordID{
+		ID: utils.UID().New(),
+	}
 	u.State = utils.ACTIVE
-	u.UpdatedAt = time.Now().String()
 	u.CreatedAt = time.Now().String()
+	u.UpdatedAt = time.Now().String()
 	u.DeletedAt = time.Now().String()
 }

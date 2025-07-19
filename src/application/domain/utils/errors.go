@@ -23,3 +23,9 @@ var ErrInvalidPhone error = errors.New("invalid phone")
 
 // errors database
 var ErrMsgDatabaseConnect string = "failed to database connection"
+
+// errors application
+var ErrMsgInvalidToken string = "ID token is invalid"
+var ErrMsgUnproccessableToken string = "ID token valid but couldn't parse claims"
+var ErrMsgIncorrectPassword string = "Incorrect password"
+var ErrUserNotFound string = "User not found"

@@ -1,6 +1,6 @@
 package dto
 
-type RegisterUserReq struct {
+type UpdateUserReq struct {
 	UserName           string `json:"username"`
 	LastName           string `json:"lastName"`
 	FirstName          string `json:"firstName"`
@@ -12,7 +12,7 @@ type RegisterUserReq struct {
 	Language           string `json:"language"`
 }
 
-type RegisterUserRes struct {
+type UpdateUserRes struct {
 	ID       string `json:"id"`
 	Email    string `json:"email"`
 	Password string `json:"password"`

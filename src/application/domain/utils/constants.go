@@ -19,7 +19,7 @@ const (
 	BUSSINESS   string = "bussiness@"
 )
 
-// apis
+// apis group routes
 const (
 	USER         string = "user"
 	ORGANIZATION string = "organization"

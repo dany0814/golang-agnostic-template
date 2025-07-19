@@ -61,39 +61,57 @@ func newZapLogger() (ILogger, error) {
 		return nil, err
 	}
 
-	encoderConfig := zapcore.EncoderConfig{
+	consoleEncoderConfig := zapcore.EncoderConfig{
 		TimeKey:        "ts",
 		LevelKey:       "level",
 		NameKey:        "logger",
-		CallerKey:      "caller",
 		MessageKey:     "msg",
 		StacktraceKey:  "stacktrace",
 		LineEnding:     zapcore.DefaultLineEnding,
-		EncodeLevel:    zapcore.CapitalLevelEncoder,
-		EncodeTime:     zapcore.ISO8601TimeEncoder,
+		EncodeLevel:    zapcore.CapitalColorLevelEncoder,
+		EncodeTime:     zapcore.TimeEncoderOfLayout("02-01-2006 15:04:05"),
 		EncodeDuration: zapcore.StringDurationEncoder,
 		EncodeCaller:   zapcore.ShortCallerEncoder,
 	}
 
-	var writeSyncer zapcore.WriteSyncer
-	if config.Params.FilePath != "" {
-		writeSyncer = zapcore.NewMultiWriteSyncer(
-			zapcore.AddSync(lumberjackLogger),
-			zapcore.AddSync(os.Stdout),
-		)
-	} else {
-		writeSyncer = zapcore.AddSync(os.Stdout)
+	fileEncoderConfig := zapcore.EncoderConfig{
+		TimeKey:        "ts",
+		LevelKey:       "level",
+		NameKey:        "logger",
+		MessageKey:     "msg",
+		StacktraceKey:  "stacktrace",
+		LineEnding:     zapcore.DefaultLineEnding,
+		EncodeLevel:    zapcore.CapitalLevelEncoder,
+		EncodeTime:     zapcore.TimeEncoderOfLayout("02-01-2006 15:04:05"),
+		EncodeDuration: zapcore.StringDurationEncoder,
+		EncodeCaller:   zapcore.ShortCallerEncoder,
 	}
 
-	core := zapcore.NewCore(
-		zapcore.NewJSONEncoder(encoderConfig),
-		writeSyncer,
-		level,
-	)
+	var core zapcore.Core
+	consoleSyncer := zapcore.AddSync(os.Stdout)
+	if config.Params.FilePath != "" {
+		fileSyncer := zapcore.AddSync(lumberjackLogger)
+		consoleCore := zapcore.NewCore(
+			zapcore.NewConsoleEncoder(consoleEncoderConfig),
+			consoleSyncer,
+			level,
+		)
+		fileCore := zapcore.NewCore(
+			zapcore.NewJSONEncoder(fileEncoderConfig),
+			fileSyncer,
+			level,
+		)
+		core = zapcore.NewTee(consoleCore, fileCore)
+	} else {
+		core = zapcore.NewCore(
+			zapcore.NewConsoleEncoder(consoleEncoderConfig),
+			consoleSyncer,
+			level,
+		)
+	}
 
 	options := []zap.Option{
 		zap.AddCaller(),
-		zap.AddStacktrace(zap.ErrorLevel),
 	}
 
 	if config.Params.Environment == utils.DEV {

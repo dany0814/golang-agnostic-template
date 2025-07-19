@@ -4,20 +4,31 @@ networks:
     external: true
 
 services:
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    container_name: app-go
+    ports:
+      - 3000:3000
+    depends_on:
+      - surrealdb
+    networks:
+      - localnet
+
   surrealdb:
     image: surrealdb/surrealdb:latest
     container_name: surrealdb
     restart: unless-stopped
-    pull_policy: always
     ports:
-      - "8000:8000"
+      - 8000:8000
+    command: ${SURREAL_COMMAND}
     volumes:
       - ${PWD}/surrealdb:/var/lib/surrealdb
-    env_file:
-      - ${PWD}/.env
     networks:
       - localnet
-    command: start --user ${SURREAL_USER} --pass ${SURREAL_PASS} rocksdb:/var/lib/surrealdb/rocks.db
     deploy:
       resources:
         limits:

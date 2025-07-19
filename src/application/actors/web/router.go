@@ -30,18 +30,22 @@ func NewGroupRoutes(ctx context.Context, log logger.ILogger) []GroupRoute {
 
 func Routes(service factory.FactoryService, ctx context.Context, log logger.ILogger) []GroupRoute {
 	srv := service.Create(ctx)
-	handler := NewHandler(srv.GetUserService(), srv.GetOrganizationService(), log)
+	userHandler := NewUserHandler(srv.GetUserService(), log)
+	organizationHandler := NewOrganizationHandler(srv.GetOrganizationService(), log)
 	routes := []GroupRoute{
 		{Name: utils.USER,
 			Paths: []Route{
-				{Method: "POST", Path: "/create", Handler: handler.RegisterUserHandler()},
-				{Method: "GET", Path: "/:id", Handler: handler.RegisterUserHandler()},
+				{Method: "POST", Path: "/create", Handler: userHandler.RegisterUserHandler()},
+				{Method: "POST", Path: "/login", Handler: userHandler.LoginUserHandler()},
+				{Method: "GET", Path: "/:id", Handler: userHandler.GetUserByIdHandler()},
+				{Method: "PATCH", Path: "/:id", Handler: userHandler.UpdateUserByIdHandler()},
+				{Method: "DELETE", Path: "/:id", Handler: userHandler.DeleteUserByIdHandler()},
 			},
 		},
 		{Name: utils.ORGANIZATION,
 			Paths: []Route{
-				{Method: "POST", Path: "/create", Handler: handler.RegisterUserHandler()},
-				{Method: "GET", Path: "/:id", Handler: handler.RegisterUserHandler()},
+				{Method: "POST", Path: "/create", Handler: organizationHandler.RegisterOrganizationHandler()},
+				{Method: "GET", Path: "/:id", Handler: organizationHandler.RegisterOrganizationHandler()},
 			},
 		},
 	}

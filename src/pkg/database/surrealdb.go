@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"golang-agnostic-template/src/pkg/config"
+	"time"
 
 	"github.com/surrealdb/surrealdb.go"
 )
@@ -24,24 +25,40 @@ func NewSurrealDBConnection() IDatabaseConnection {
 }
 
 func (s *SurrealDBConnection) Connect(ctx context.Context) (*surrealdb.DB, error) {
-	db, err := surrealdb.New(fmt.Sprintf("ws://%s:%d", config.Params.DBHost, config.Params.DBPort))
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to SurrealDB: %w", err)
-	}
-	authData := &surrealdb.Auth{
-		Username: config.Params.DBUser,
-		Password: config.Params.DBPassword,
-	}
-	_, err = db.SignIn(authData)
-	if err != nil {
-		return nil, fmt.Errorf("failed to sign in to SurrealDB: %w", err)
-	}
+	const maxAttempts = 3
+	const retryDelay = 3 * time.Second
 
-	if err := db.Use(config.Params.DBNamespace, config.Params.DBDatabase); err != nil {
-		return nil, fmt.Errorf("failed to use database: %w", err)
+	dsn := fmt.Sprintf("ws://%s:%d", config.Params.DBHost, config.Params.DBPort)
+	var db *surrealdb.DB
+	var err error
+
+	for attempt := 1; attempt <= maxAttempts; attempt++ {
+		db, err = surrealdb.New(dsn)
+		if err == nil {
+			authData := &surrealdb.Auth{
+				Username: config.Params.DBUser,
+				Password: config.Params.DBPassword,
+			}
+			_, err = db.SignIn(authData)
+			if err == nil {
+				err = db.Use(config.Params.DBNamespace, config.Params.DBDatabase)
+				if err == nil {
+					s.db = db
+					return db, nil
+				}
+			}
+		}
+		fmt.Printf("Attempt %d/%d failed: %v\n", attempt, maxAttempts, err)
+
+		if attempt < maxAttempts {
+			select {
+			case <-time.After(retryDelay):
+			case <-ctx.Done():
+				return nil, fmt.Errorf("connection attempt cancelled: %w", ctx.Err())
+			}
+		}
 	}
-	s.db = db
-	return db, nil
+	return nil, fmt.Errorf("failed to connect to SurrealDB after %d attempts: %w", maxAttempts, err)
 }
 
 func (s *SurrealDBConnection) DB() *surrealdb.DB {

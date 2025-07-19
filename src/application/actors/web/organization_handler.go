@@ -10,21 +10,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type Handler struct {
-	userService domain.IUserService
-	orgService  domain.IOrganizationService
-	logger      logger.ILogger
+type OrganizationHandler struct {
+	orgService domain.IOrganizationService
+	logger     logger.ILogger
 }
 
-func NewHandler(domainUserService domain.IUserService, domainOrgService domain.IOrganizationService, logger logger.ILogger) *Handler {
-	return &Handler{
-		userService: domainUserService,
-		orgService:  domainOrgService,
-		logger:      logger,
+func NewOrganizationHandler(domainOrgService domain.IOrganizationService, logger logger.ILogger) *OrganizationHandler {
+	return &OrganizationHandler{
+		orgService: domainOrgService,
+		logger:     logger,
 	}
 }
 
-func (h *Handler) RegisterUserHandler() gin.HandlerFunc {
+func (h *OrganizationHandler) RegisterOrganizationHandler() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var registerUserReq dto.RegisterUserReq
 
@@ -34,18 +32,14 @@ func (h *Handler) RegisterUserHandler() gin.HandlerFunc {
 		}
 		h.logger.Info(utils.HANDLER+utils.USER, logger.LoggerField{Key: "request", Value: registerUserReq})
 
-		res, err := h.userService.Register(ctx, registerUserReq)
-		if err != nil {
-			ctx.JSON(http.StatusBadRequest, err.Error())
-			return
-		}
+		res := h.orgService.Register(ctx, "")
 
 		h.logger.Info(utils.HANDLER+utils.USER, logger.LoggerField{Key: "response", Value: res})
 		ctx.JSON(http.StatusCreated, res)
 	}
 }
 
-func (h *Handler) RegisterOrganizationHandler() gin.HandlerFunc {
+func (h *OrganizationHandler) GetOrganizationById() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		ctx.JSON(http.StatusCreated, "oka")
 	}
